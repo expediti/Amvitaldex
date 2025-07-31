@@ -1,0 +1,135 @@
+.hero {
+  padding: 4rem 0;
+  color: white;
+}
+
+.hero-content {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4rem;
+  align-items: center;
+  min-height: 500px;
+}
+
+.hero-title {
+  font-size: 3.5rem;
+  font-weight: 700;
+  line-height: 1.2;
+  margin-bottom: 1.5rem;
+  text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+}
+
+.highlight {
+  background: linear-gradient(135deg, #ffeaa7 0%, #fab1a0 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.hero-description {
+  font-size: 1.2rem;
+  line-height: 1.6;
+  opacity: 0.9;
+  margin-bottom: 2rem;
+}
+
+.hero-features {
+  display: flex;
+  gap: 2rem;
+  flex-wrap: wrap;
+}
+
+.feature {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: rgba(255, 255, 255, 0.1);
+  padding: 0.75rem 1rem;
+  border-radius: 25px;
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.feature-icon {
+  font-size: 1.2rem;
+  color: #ffeaa7;
+}
+
+.hero-visual {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.floating-card {
+  background: rgba(255, 255, 255, 0.15);
+  padding: 2rem;
+  border-radius: 20px;
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  text-align: center;
+  transform: translateY(0px);
+  animation: float 6s ease-in-out infinite;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+}
+
+.floating-card svg {
+  color: #ffeaa7;
+  margin-bottom: 1rem;
+}
+
+.floating-card h3 {
+  font-size: 1.5rem;
+  margin-bottom: 0.5rem;
+  font-weight: 600;
+}
+
+.floating-card p {
+  opacity: 0.8;
+  font-size: 0.9rem;
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-20px); }
+}
+
+@media (max-width: 968px) {
+  .hero-content {
+    grid-template-columns: 1fr;
+    gap: 3rem;
+    text-align: center;
+  }
+  
+  .hero-title {
+    font-size: 2.5rem;
+  }
+  
+  .hero-description {
+    font-size: 1.1rem;
+  }
+  
+  .hero-features {
+    justify-content: center;
+    gap: 1rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .hero {
+    padding: 2rem 0;
+  }
+  
+  .hero-title {
+    font-size: 2rem;
+  }
+  
+  .hero-features {
+    flex-direction: column;
+    align-items: center;
+  }
+  
+  .floating-card {
+    padding: 1.5rem;
+  }
+}
