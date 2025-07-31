@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>COVID-19 Symptom Checker - VitalDex</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 1rem;
+        }
+        .container {
+            max-width: 700px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            padding: 2rem;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+        h1 { color: #333; text-align: center; margin-bottom: 1rem; }
+        .section { margin-bottom: 2rem; }
+        .section h3 { color: #555; margin-bottom: 1rem; font-size: 1.2rem; }
+        .symptom-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 0.5rem;
+        }
+        .symptom-item {
+            padding: 0.75rem;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: white;
+            text-align: center;
+            font-size: 0.9rem;
+        }
+        .symptom-item:hover { 
+            border-color: #dc3545; 
+            transform: translateY(-2px); 
+        }
+        .symptom-item.selected {
+            border-color: #dc3545;
+            background: #dc3545;
+            color: white;
+        }
+        .exposure-options {
+            display: grid;
+            gap: 1rem;
+        }
+        .exposure-item {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 1rem;
+            border: 2px solid #e9ecef;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .exposure-item:hover { border-color: #dc3545; }
+        .exposure-item.selected { 
+            border-color: #dc3545; 
+            background: rgba(220, 53, 69, 0.1);
+        }
+        .checkbox {
+            width: 20px;
+            height: 20px;
+            border: 2px solid #dc3545;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+        }
+        .vaccination-section {
+            background: #f8f9fa;
+            padding: 1.5rem;
+            border-radius: 10px;
+        }
+        .submit-btn {
+            background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+            color: white;
+            border: none;
+            padding: 1rem 2rem;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: bold;
+            width: 100%;
+            margin-top: 1rem;
+            opacity: 0.5;
+            pointer-events: none;
+        }
+        .submit-btn.enabled {
+            opacity: 1;
+            pointer-events: auto;
+        }
+        .submit-btn:hover.enabled {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(220, 53, 69, 0.4);
+        }
+        .results {
+            text-align: center;
+            padding: 2rem 0;
+        }
+        .risk-badge {
+            padding: 1rem 2rem;
+            border-radius: 15px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            margin: 1rem 0;
+            color: white;
+        }
+        .low { background: #28a745; }
+        .low-moderate { background: #ffc107; color: #333; }
+        .moderate { background: #fd7e14; }
+        .high { background: #dc3545; }
+        .recommendations {
+            text-align: left;
+            background: #f8f9fa;
+            padding: 1.5rem;
+            border-radius: 10px;
+            margin: 1rem 0;
+        }
+        .loading { 
+            text-align: center; 
+            padding: 2rem; 
+            display: none;
+        }
+        .back-btn {
+            background: #6c757d;
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 20px;
+            cursor: pointer;
+            margin-right: 1rem;
+            text-decoration: none;
+            display: inline-block;
+        }
+        .warning-box {
+            background: #fff3cd;
+            border: 2px solid #ffc107;
+            padding: 1rem;
+            border-radius: 10px;
+            margin: 1rem 0;
+            color: #856404;
+        }
+        @media (max-width: 768px) {
+            .container { padding: 1.5rem; margin: 0.5rem; }
+            .symptom-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="/" class="back-btn">← Back to VitalDex</a>
+        
+        <h1>🦠 COVID-19 Symptom Checker</h1>
+        <p style="text-align: center; color: #666; margin-bottom: 2rem;">
+            Check your symptoms and get personalized recommendations for COVID-19 testing and safety measures.
+        </p>
+
+        <div id="assessment-form">
+            <div class="section">
+                <h3>🤒 Current Symptoms</h3>
+                <p style="color: #666; margin-bottom: 1rem;">Select all symptoms you're currently experiencing:</p>
+                <div class="symptom-grid" id="symptoms-grid">
+                    <!-- Symptoms populated by JavaScript -->
+                </div>
+            </div>
+
+            <div class="section">
+                <h3>📍 Exposure History (Last 14 days)</h3>
+                <div class="exposure-options" id="exposure-options">
+                    <!-- Exposure options populated by JavaScript -->
+                </div>
+            </div>
+
+            <div class="section vaccination-section">
+                <h3>💉 Vaccination Status</h3>
+                <div class="exposure-options" id="vaccination-options">
+                    <!-- Vaccination options populated by JavaScript -->
+                </div>
+            </div>
+
+            <div class="warning-box">
+                <strong>⚠️ Important:</strong> This tool is for informational purposes only. If you're experiencing severe symptoms like difficulty breathing, chest pain, or persistent fever, seek immediate medical attention.
+            </div>
+
+            <button class="submit-btn" id="submit-btn" onclick="submitAssessment()">
+                Get My COVID-19 Risk Assessment
+            </button>
+        </div>
+
+        <div id="loading" class="loading">
+            <h3>🔄 Analyzing your symptoms and risk factors...</h3>
+        </div>
+
+        <div id="results" style="display: none;"></div>
+    </div>
+
+    <script>
+        const symptoms = [
+            'Fever or chills', 'Dry cough', 'Shortness of breath', 'Difficulty breathing',
+            'Loss of taste', 'Loss of smell', 'Fatigue', 'Body aches',
+            'Headache', 'Sore throat', 'Runny nose', 'Nausea or vomiting',
+            'Diarrhea', 'Chest pain', 'Congestion'
+        ];
+
+        const exposureQuestions = [
+            { id: 'closeContact', text: 'Close contact with someone who tested positive for COVID-19' },
+            { id: 'crowdedPlaces', text: 'Been in crowded indoor spaces or large gatherings' },
+            { id: 'travel', text: 'Traveled to areas with high COVID-19 transmission' }
+        ];
+
+        const vaccinationQuestions = [
+            { id: 'fullyVaccinated', text: 'I am fully vaccinated (completed primary series)' },
+            { id: 'boosted', text: 'I have received booster shots' }
+        ];
+
+        let selectedSymptoms = [];
+        let exposureHistory = {};
+        let vaccination = {};
+
+        function populateForm() {
+            // Populate symptoms
+            const symptomsGrid = document.getElementById('symptoms-grid');
+            symptoms.forEach(symptom => {
+                const div = document.createElement('div');
+                div.className = 'symptom-item';
+                div.textContent = symptom;
+                div.onclick = () => toggleSymptom(symptom, div);
+                symptomsGrid.appendChild(div);
+            });
+
+            // Populate exposure history
+            const exposureOptions = document.getElementById('exposure-options');
+            exposureQuestions.forEach(question => {
+                const div = document.createElement('div');
+                div.className = 'exposure-item';
+                div.innerHTML = `
+                    <div class="checkbox" id="check-${question.id}"></div>
+                    <span>${question.text}</span>
+                `;
+                div.onclick = () => toggleExposure(question.id, div);
+                exposureOptions.appendChild(div);
+            });
+
+            // Populate vaccination status
+            const vaccinationOptions = document.getElementById('vaccination-options');
+            vaccinationQuestions.forEach(question => {
+                const div = document.createElement('div');
+                div.className = 'exposure-item';
+                div.innerHTML = `
+                    <div class="checkbox" id="vax-${question.id}"></div>
+                    <span>${question.text}</span>
+                `;
+                div.onclick = () => toggleVaccination(question.id, div);
+                vaccinationOptions.appendChild(div);
+            });
+        }
+
+        function toggleSymptom(symptom, element) {
+            if (selectedSymptoms.includes(symptom)) {
+                selectedSymptoms = selectedSymptoms.filter(s => s !== symptom);
+                element.classList.remove('selected');
+            } else {
+                selectedSymptoms.push(symptom);
+                element.classList.add('selected');
+            }
+            checkFormCompletion();
+        }
+
+        function toggleExposure(id, element) {
+            exposureHistory[id] = !exposureHistory[id];
+            if (exposureHistory[id]) {
+                element.classList.add('selected');
+                document.getElementById(`check-${id}`).textContent = '✓';
+            } else {
+                element.classList.remove('selected');
+                document.getElementById(`check-${id}`).textContent = '';
+            }
+            checkFormCompletion();
+        }
+
+        function toggleVaccination(id, element) {
+            vaccination[id] = !vaccination[id];
+            if (vaccination[id]) {
+                element.classList.add('selected');
+                document.getElementById(`vax-${id}`).textContent = '✓';
+            } else {
+                element.classList.remove('selected');
+                document.getElementById(`vax-${id}`).textContent = '';
+            }
+            checkFormCompletion();
+        }
+
+        function checkFormCompletion() {
+            // Enable submit button if at least one symptom is selected
+            if (selectedSymptoms.length > 0) {
+                document.getElementById('submit-btn').classList.add('enabled');
+            } else {
+                document.getElementById('submit-btn').classList.remove('enabled');
+            }
+        }
+
+        async function submitAssessment() {
+            if (selectedSymptoms.length === 0) {
+                alert('Please select at least one symptom to proceed.');
+                return;
+            }
+
+            document.getElementById('loading').style.display = 'block';
+            document.getElementById('assessment-form').style.display = 'none';
+            
+            try {
+                const response = await fetch('/api/covid-assessment', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ 
+                        symptoms: selectedSymptoms,
+                        exposureHistory,
+                        vaccination
+                    })
+                });
+                
+                if (!response.ok) {
+                    throw new Error('Assessment failed');
+                }
+                
+                const result = await response.json();
+                displayResults(result);
+                
+            } catch (error) {
+                console.error('Error:', error);
+                document.getElementById('loading').innerHTML = `
+                    <h3 style="color: #dc3545;">❌ Assessment Failed</h3>
+                    <p>Please check your internet connection and try again.</p>
+                    <button class="submit-btn enabled" onclick="location.reload()">Try Again</button>
+                `;
+            }
+        }
+
+        function displayResults(result) {
+            document.getElementById('loading').style.display = 'none';
+            
+            const resultsDiv = document.getElementById('results');
+            resultsDiv.style.display = 'block';
+            
+            const riskClass = result.riskLevel.toLowerCase().replace(' ', '-').replace(' risk', '');
+            
+            resultsDiv.innerHTML = `
+                <h2>🦠 COVID-19 Risk Assessment Results</h2>
+                
+                <div class="risk-badge ${riskClass}">
+                    ${result.riskLevel}
+                    <div style="font-size: 0.9rem; margin-top: 0.5rem;">
+                        Risk Score: ${result.riskScore}/12
+                    </div>
+                </div>
+                
+                <p style="font-size: 1.1rem; line-height: 1.6; margin: 1rem 0; color: #333;">
+                    ${result.description}
+                </p>
+                
+                ${result.testingInfo.shouldTest ? `
+                    <div style="background: #fff3cd; border: 2px solid #ffc107; padding: 1.5rem; border-radius: 10px; margin: 1rem 0;">
+                        <h4 style="color: #856404; margin-bottom: 1rem;">🧪 Testing Recommendation:</h4>
+                        <p style="color: #856404; font-weight: bold;">
+                            Get tested ${result.testingInfo.urgency}
+                        </p>
+                    </div>
+                ` : ''}
+                
+                <div class="recommendations">
+                    <h4>📋 Recommended Actions:</h4>
+                    <ul>
+                        ${result.recommendations.map(rec => `<li>${rec}</li>`).join('')}
+                    </ul>
+                </div>
+                
+                ${result.matchedSymptoms.highRisk.length > 0 ? `
+                    <div style="background: #f8d7da; border: 2px solid #dc3545; padding: 1.5rem; border-radius: 10px; margin: 1rem 0;">
+                        <h4 style="color: #721c24; margin-bottom: 1rem;">⚠️ High-Risk Symptoms Detected:</h4>
+                        <p style="color: #721c24;">
+                            ${result.matchedSymptoms.highRisk.join(', ')}
+                        </p>
+                    </div>
+                ` : ''}
+                
+                <div style="background: #d4edda; border: 1px solid #c3e6cb; padding: 1.5rem; border-radius: 10px; margin: 1rem 0;">
+                    <h4 style="color: #155724; margin-bottom: 1rem;">🏠 Isolation Advice:</h4>
+                    <p style="color: #155724;">${result.isolationAdvice}</p>
+                </div>
+                
+                <div style="background: #f8d7da; border: 1px solid #f5c6cb; padding: 1.5rem; border-radius: 10px; margin: 1rem 0;">
+                    <p style="color: #721c24; margin: 0; font-size: 0.9rem;">
+                        <strong>Medical Disclaimer:</strong> This assessment is for informational purposes only. For severe symptoms or emergency situations, contact healthcare providers immediately or call emergency services.
+                    </p>
+                </div>
+                
+                <div style="margin-top: 2rem; text-align: center;">
+                    <button class="submit-btn enabled" onclick="location.reload()" style="width: auto; margin-right: 1rem;">
+                        Take Assessment Again
+                    </button>
+                    <a href="/" class="back-btn">Back to VitalDex</a>
+                </div>
+            `;
+        }
+
+        // Initialize
+        populateForm();
+    </script>
+</body>
+</html>
