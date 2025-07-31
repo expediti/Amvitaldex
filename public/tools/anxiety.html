@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Anxiety Assessment - VitalDex</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 1rem;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            padding: 2rem;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+        h1 { color: #333; text-align: center; margin-bottom: 1rem; }
+        .question { margin-bottom: 2rem; }
+        .question h3 { color: #555; margin-bottom: 1rem; font-size: 1.1rem; }
+        .options { display: grid; gap: 0.5rem; }
+        .option {
+            padding: 1rem;
+            border: 2px solid #e9ecef;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: white;
+            text-align: center;
+        }
+        .option:hover { 
+            border-color: #667eea; 
+            transform: translateY(-2px); 
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.2);
+        }
+        .option.selected {
+            border-color: #667eea;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        .submit-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 1rem 2rem;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: bold;
+            width: 100%;
+            margin-top: 1rem;
+            opacity: 0.5;
+            pointer-events: none;
+        }
+        .submit-btn.enabled {
+            opacity: 1;
+            pointer-events: auto;
+        }
+        .submit-btn:hover.enabled {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+        .results {
+            text-align: center;
+            padding: 2rem;
+        }
+        .level-badge {
+            padding: 1rem 2rem;
+            border-radius: 15px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            margin: 1rem 0;
+            color: white;
+        }
+        .minimal { background: #28a745; }
+        .mild { background: #ffc107; color: #333; }
+        .moderate { background: #fd7e14; }
+        .severe { background: #dc3545; }
+        .recommendations {
+            text-align: left;
+            background: #f8f9fa;
+            padding: 1.5rem;
+            border-radius: 10px;
+            margin: 1rem 0;
+        }
+        .recommendations h4 { margin-bottom: 1rem; color: #333; }
+        .recommendations ul { padding-left: 1.5rem; }
+        .recommendations li { margin-bottom: 0.5rem; line-height: 1.5; }
+        .loading { 
+            text-align: center; 
+            padding: 2rem; 
+            display: none;
+        }
+        .loading h3 { color: #667eea; margin-bottom: 1rem; }
+        .progress { margin-bottom: 1rem; font-size: 0.9rem; color: #666; }
+        .back-btn {
+            background: #6c757d;
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 20px;
+            cursor: pointer;
+            margin-right: 1rem;
+            text-decoration: none;
+            display: inline-block;
+        }
+        @media (max-width: 768px) {
+            .container { padding: 1.5rem; margin: 0.5rem; }
+            h1 { font-size: 1.5rem; }
+            .question h3 { font-size: 1rem; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="/" class="back-btn">← Back to VitalDex</a>
+        
+        <h1>🧘‍♀️ Anxiety Self-Assessment</h1>
+        <p style="text-align: center; color: #666; margin-bottom: 2rem;">
+            Over the last 2 weeks, how often have you been bothered by the following problems?
+        </p>
+
+        <div id="assessment-form">
+            <!-- Questions will be populated by JavaScript -->
+        </div>
+
+        <div id="loading" class="loading">
+            <h3>🔄 Analyzing your responses...</h3>
+            <p>This may take a moment</p>
+        </div>
+
+        <div id="results" style="display: none;"></div>
+    </div>
+
+    <script>
+        const questions = [
+            {
+                id: 'nervous',
+                text: 'Feeling nervous, anxious or on edge?',
+                options: [
+                    { text: 'Not at all', value: 0 },
+                    { text: 'Several days', value: 1 },
+                    { text: 'More than half the days', value: 2 },
+                    { text: 'Nearly every day', value: 3 }
+                ]
+            },
+            {
+                id: 'worry',
+                text: 'Not being able to stop or control worrying?',
+                options: [
+                    { text: 'Not at all', value: 0 },
+                    { text: 'Several days', value: 1 },
+                    { text: 'More than half the days', value: 2 },
+                    { text: 'Nearly every day', value: 3 }
+                ]
+            },
+            {
+                id: 'trouble',
+                text: 'Trouble relaxing?',
+                options: [
+                    { text: 'Not at all', value: 0 },
+                    { text: 'Several days', value: 1 },
+                    { text: 'More than half the days', value: 2 },
+                    { text: 'Nearly every day', value: 3 }
+                ]
+            },
+            {
+                id: 'restless',
+                text: 'Being so restless that it is hard to sit still?',
+                options: [
+                    { text: 'Not at all', value: 0 },
+                    { text: 'Several days', value: 1 },
+                    { text: 'More than half the days', value: 2 },
+                    { text: 'Nearly every day', value: 3 }
+                ]
+            },
+            {
+                id: 'irritable',
+                text: 'Becoming easily annoyed or irritable?',
+                options: [
+                    { text: 'Not at all', value: 0 },
+                    { text: 'Several days', value: 1 },
+                    { text: 'More than half the days', value: 2 },
+                    { text: 'Nearly every day', value: 3 }
+                ]
+            },
+            {
+                id: 'afraid',
+                text: 'Feeling afraid as if something awful might happen?',
+                options: [
+                    { text: 'Not at all', value: 0 },
+                    { text: 'Several days', value: 1 },
+                    { text: 'More than half the days', value: 2 },
+                    { text: 'Nearly every day', value: 3 }
+                ]
+            }
+        ];
+
+        let answers = {};
+
+        function populateQuestions() {
+            const formContainer = document.getElementById('assessment-form');
+            
+            questions.forEach((question, index) => {
+                const questionDiv = document.createElement('div');
+                questionDiv.className = 'question';
+                questionDiv.innerHTML = `
+                    <h3>${index + 1}. ${question.text}</h3>
+                    <div class="progress">Question ${index + 1} of ${questions.length}</div>
+                    <div class="options" id="options-${question.id}">
+                        ${question.options.map(option => `
+                            <div class="option" data-question="${question.id}" data-value="${option.value}">
+                                ${option.text}
+                            </div>
+                        `).join('')}
+                    </div>
+                `;
+                formContainer.appendChild(questionDiv);
+            });
+
+            const submitBtn = document.createElement('button');
+            submitBtn.className = 'submit-btn';
+            submitBtn.textContent = 'Get My Assessment Results';
+            submitBtn.onclick = submitAssessment;
+            submitBtn.id = 'submit-btn';
+            formContainer.appendChild(submitBtn);
+
+            document.querySelectorAll('.option').forEach(option => {
+                option.addEventListener('click', selectOption);
+            });
+        }
+
+        function selectOption(e) {
+            const question = e.target.dataset.question;
+            const value = parseInt(e.target.dataset.value);
+            
+            document.querySelectorAll(`[data-question="${question}"]`).forEach(opt => {
+                opt.classList.remove('selected');
+            });
+            
+            e.target.classList.add('selected');
+            answers[question] = value;
+            
+            if (Object.keys(answers).length === questions.length) {
+                document.getElementById('submit-btn').classList.add('enabled');
+            }
+        }
+
+        async function submitAssessment() {
+            if (Object.keys(answers).length !== questions.length) {
+                alert('Please answer all questions before submitting.');
+                return;
+            }
+
+            document.getElementById('loading').style.display = 'block';
+            document.getElementById('assessment-form').style.display = 'none';
+            
+            try {
+                const response = await fetch('/api/anxiety-assessment', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ answers })
+                });
+                
+                if (!response.ok) {
+                    throw new Error('Assessment failed');
+                }
+                
+                const result = await response.json();
+                displayResults(result);
+                
+            } catch (error) {
+                console.error('Error:', error);
+                document.getElementById('loading').innerHTML = `
+                    <h3 style="color: #dc3545;">❌ Assessment Failed</h3>
+                    <p>Please check your internet connection and try again.</p>
+                    <button class="submit-btn enabled" onclick="location.reload()">Try Again</button>
+                `;
+            }
+        }
+
+        function displayResults(result) {
+            document.getElementById('loading').style.display = 'none';
+            
+            const resultsDiv = document.getElementById('results');
+            resultsDiv.style.display = 'block';
+            resultsDiv.innerHTML = `
+                <h2>📊 Your Assessment Results</h2>
+                
+                <div class="level-badge ${result.level.toLowerCase()}">
+                    ${result.level} Anxiety Level
+                    <div style="font-size: 0.9rem; margin-top: 0.5rem;">
+                        Score: ${result.score}/${result.maxScore}
+                    </div>
+                </div>
+                
+                <p style="font-size: 1.1rem; line-height: 1.6; margin: 1rem 0; color: #333;">
+                    ${result.description}
+                </p>
+                
+                <div class="recommendations">
+                    <h4>📋 Personalized Recommendations:</h4>
+                    <ul>
+                        ${result.recommendations.map(rec => `<li>${rec}</li>`).join('')}
+                    </ul>
+                </div>
+                
+                ${result.resources.crisis.length > 0 ? `
+                    <div style="background: #fff3cd; border: 2px solid #ffeaa7; padding: 1.5rem; border-radius: 10px; margin: 1rem 0;">
+                        <h4 style="color: #856404; margin-bottom: 1rem;">🚨 Immediate Support Resources:</h4>
+                        <ul style="color: #856404;">
+                            ${result.resources.crisis.map(resource => `<li><strong>${resource}</strong></li>`).join('')}
+                        </ul>
+                    </div>
+                ` : ''}
+                
+                <div style="background: #d1ecf1; border: 1px solid #bee5eb; padding: 1.5rem; border-radius: 10px; margin: 1rem 0;">
+                    <h4 style="color: #0c5460; margin-bottom: 1rem;">📱 Helpful Resources:</h4>
+                    <div style="color: #0c5460;">
+                        <strong>Mental Health Apps:</strong> ${result.resources.apps.join(', ')}<br>
+                        <strong>Professional Help:</strong> ${result.resources.therapy.join(', ')}
+                    </div>
+                </div>
+                
+                <div style="background: #f8d7da; border: 1px solid #f5c6cb; padding: 1.5rem; border-radius: 10px; margin: 1rem 0;">
+                    <p style="color: #721c24; margin: 0; font-size: 0.9rem;">
+                        <strong>Important:</strong> This assessment is for informational purposes only and does not replace professional medical advice. Please consult with a healthcare provider for proper evaluation and treatment.
+                    </p>
+                </div>
+                
+                <div style="margin-top: 2rem; text-align: center;">
+                    <button class="submit-btn enabled" onclick="location.reload()" style="width: auto; margin-right: 1rem;">
+                        Take Assessment Again
+                    </button>
+                    <a href="/" class="back-btn">Back to VitalDex</a>
+                </div>
+            `;
+        }
+
+        // Initialize
+        populateQuestions();
+    </script>
+</body>
+</html>
