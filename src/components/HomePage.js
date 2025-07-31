@@ -84,4 +84,31 @@ const HomePage = () => {
   );
 };
 
+import React from 'react';
+
+const HomePage = () => {
+  return (
+    <div>
+      <h1>VitalDx Health Platform</h1>
+      
+      <div className="tools-section">
+        <h2>Health Assessment Tools</h2>
+        
+        <div className="tool-cards">
+          <a href="/tools/anxiety.html" className="tool-card">
+            <h3>🧘‍♀️ Anxiety Assessment</h3>
+            <p>Check your anxiety levels and get recommendations</p>
+          </a>
+          
+          <a href="/tools/covid.html" className="tool-card">
+            <h3>🦠 COVID-19 Checker</h3>
+            <p>Assess your COVID risk and get testing advice</p>
+          </a>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 export default HomePage;
+
